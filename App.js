@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Login from '../ReactDemoProject/src/components/Login/Login';
+import Login from './src/components/Login/Login';
 
 export default function App() {
   return (
