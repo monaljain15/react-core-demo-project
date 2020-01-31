@@ -3,7 +3,8 @@ import {
   View,
   StyleSheet,
   ImageBackground,
-  Alert
+  Alert,
+  Dimensions,
 } from 'react-native';
 
 import DefaultInput from '../../components/UI/DefaultInput/DefaultInput';
@@ -11,6 +12,8 @@ import HeadingText from '../../components/UI/HeadingText/HeadingText';
 import MainText from '../../components/UI/MainText/MainText';
 import ButtonWithBackground from '../../components/UI/ButtonWithBackground/ButtonWithBackground';
 import backgroundImage from '../../../assets/img55.jpg';
+import PostList from '../PostList/PostList';
+import Loading from '../../components/UI/Loading/Loading';
 
 export default class Login extends Component {
   state = {
@@ -20,6 +23,9 @@ export default class Login extends Component {
       password: {
         value: '',
       },
+      authorization: '',
+      isLogin: false,
+      isLoading: false,
   };
 
   constructor(props) {
@@ -34,12 +40,13 @@ export default class Login extends Component {
   };
 
   authHandler = () => {
+    this.setState({isLoading: true});
     const authData = {
       email: this.state.email.value,
       password: this.state.password.value,
     };
 
-    fetch('http://192.168.1.91:3000/api/v1/user/sign-in',
+    fetch('http://35.160.197.175:3006/api/v1/user/login',
     {
         method: 'POST',
         headers: {
@@ -50,16 +57,33 @@ export default class Login extends Component {
         if (response.status == 200) {
             return response.json()
         } else {
-            
         }
     }).then((responseJSON) => {
-        console.log(responseJSON);
-        Alert.alert('Login Successful');
-    })
+        this.setState({isLoading: false});
+        this.setState({
+          authorization: responseJSON.token,
+          isLogin: true,
+        });
+        Alert.alert(
+          'Login',
+          'Login Successful',
+          [
+            {text: 'OK',
+            onPress: () => {
+              this.setState({
+                isLogin: true,
+              });
+            }},
+          ],
+          {cancelable: false},
+      );
+    }).catch((err) => {
+      this.setState({isLoading: false});
+    });
   };
 
   render() {
-    return (
+    let content = (
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
         <View style={styles.container} behavior="padding">
             <MainText>
@@ -68,9 +92,11 @@ export default class Login extends Component {
             <MainText>
                 <HeadingText style={styles.subHeading}>Lets indulge into Dessert Delicacies</HeadingText>
             </MainText>
+            <Loading isLoading={this.state.isLoading} />
             <View style={styles.inputContainer}>
               <DefaultInput
                 placeholder="Your E-Mail Address"
+                placeholderTextColor="#3feaea" 
                 style={styles.input}
                 value={this.state.email.value}
                 onChangeText={val => this.updateInputState('email', val)}
@@ -82,6 +108,7 @@ export default class Login extends Component {
                 <View>
                   <DefaultInput
                     placeholder="Password"
+                    placeholderTextColor="#3feaea"
                     style={styles.input}
                     value={this.state.password.value}
                     onChangeText={val => this.updateInputState('password', val)}
@@ -102,6 +129,16 @@ export default class Login extends Component {
         </View>
       </ImageBackground>
     );
+
+    if (this.state.isLogin) {
+      content = <PostList authorization={this.state.authorization} />;
+    }
+
+    return (
+      <View>
+        {content}
+      </View>
+    );
   }
 }
 
@@ -112,16 +149,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backgroundImage: {
-    width: '100%',
+    width: Dimensions.get('window').width,
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inputContainer: {
-    width: '80%',
+    width: Dimensions.get('window').width - 100,
     paddingTop: 20,
   },
   input: {
-    borderColor: '#bbb',
-    backgroundColor: '#eee',
+    borderWidth: 0,
+    borderBottomWidth: 2,
+    backgroundColor: 'transparent',
+    borderBottomColor: '#fa923f',
+    color: '#3feaea',
+    fontSize: 16,
+    fontWeight: 'bold'
   },
   subHeading: {
     fontSize: 18,
