@@ -1,0 +1,1 @@
+export {authGetToken} from './auth';

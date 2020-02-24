@@ -12,19 +12,22 @@ import HeadingText from '../../components/UI/HeadingText/HeadingText';
 import MainText from '../../components/UI/MainText/MainText';
 import ButtonWithBackground from '../../components/UI/ButtonWithBackground/ButtonWithBackground';
 import backgroundImage from '../../../assets/img55.jpg';
-import PostList from '../PostList/PostList';
 import Loading from '../../components/UI/Loading/Loading';
 
-export default class Login extends Component {
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { authGetToken } from "./../../store/actions/index";
+
+
+class Login extends Component {
   state = {
       email: {
-        value: '',
+        value: 'jm1@example.com',
       },
       password: {
-        value: '',
+        value: 'jay@123',
       },
       authorization: '',
-      isLogin: false,
       isLoading: false,
   };
 
@@ -62,17 +65,15 @@ export default class Login extends Component {
         this.setState({isLoading: false});
         this.setState({
           authorization: responseJSON.token,
-          isLogin: true,
         });
+        this.props.authGetToken(responseJson.token);
         Alert.alert(
           'Login',
           'Login Successful',
           [
             {text: 'OK',
             onPress: () => {
-              this.setState({
-                isLogin: true,
-              });
+              this.props.navigation.navigate('Home',{authorization: this.state.authorization});
             }},
           ],
           {cancelable: false},
@@ -83,60 +84,52 @@ export default class Login extends Component {
   };
 
   render() {
-    let content = (
-      <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-        <View style={styles.container} behavior="padding">
-            <MainText>
-                <HeadingText>Mini Berries</HeadingText>
-            </MainText>
-            <MainText>
-                <HeadingText style={styles.subHeading}>Lets indulge into Dessert Delicacies</HeadingText>
-            </MainText>
-            <Loading isLoading={this.state.isLoading} />
-            <View style={styles.inputContainer}>
-              <DefaultInput
-                placeholder="Your E-Mail Address"
-                placeholderTextColor="#3feaea" 
-                style={styles.input}
-                value={this.state.email.value}
-                onChangeText={val => this.updateInputState('email', val)}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-              />
-              <View>
+    return (
+      <View style={styles.loginContainer}>
+        <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+          <View style={styles.container} behavior="padding">
+              <MainText>
+                  <HeadingText>Mini Berries</HeadingText>
+              </MainText>
+              <MainText>
+                  <HeadingText style={styles.subHeading}>Lets indulge into Dessert Delicacies</HeadingText>
+              </MainText>
+              <Loading isLoading={this.state.isLoading} />
+              <View style={styles.inputContainer}>
+                <DefaultInput
+                  placeholder="Your E-Mail Address"
+                  placeholderTextColor="#3feaea" 
+                  style={styles.input}
+                  value={this.state.email.value}
+                  onChangeText={val => this.updateInputState('email', val)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                />
                 <View>
-                  <DefaultInput
-                    placeholder="Password"
-                    placeholderTextColor="#3feaea"
-                    style={styles.input}
-                    value={this.state.password.value}
-                    onChangeText={val => this.updateInputState('password', val)}
-                    secureTextEntry
-                  />
+                  <View>
+                    <DefaultInput
+                      placeholder="Password"
+                      placeholderTextColor="#3feaea"
+                      style={styles.input}
+                      value={this.state.password.value}
+                      onChangeText={val => this.updateInputState('password', val)}
+                      secureTextEntry
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
-            <ButtonWithBackground
-                color="#521751"
-                onPress={this.authHandler}
-                disabled={
-                this.state.email.value === '' ||
-                this.state.password.value === ''
-            }>
-                Submit
-            </ButtonWithBackground>
-        </View>
-      </ImageBackground>
-    );
-
-    if (this.state.isLogin) {
-      content = <PostList authorization={this.state.authorization} />;
-    }
-
-    return (
-      <View>
-        {content}
+              <ButtonWithBackground
+                  color="#521751"
+                  onPress={this.authHandler}
+                  disabled={
+                  this.state.email.value === '' ||
+                  this.state.password.value === ''
+              }>
+                  Submit
+              </ButtonWithBackground>
+          </View>
+        </ImageBackground>
       </View>
     );
   }
@@ -170,5 +163,29 @@ const styles = StyleSheet.create({
   subHeading: {
     fontSize: 18,
     color: '#3feaea',
+  },
+  loginContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });
+
+const mapDispatchToProps = (dispatch) => {
+  console.log('in dispatch');
+  
+  // return bindActionCreators({
+  //   authGetToken: (authorizationToken) => authGetToken(authorizationToken)
+  // }, dispatch)
+  return bindActionCreators({
+    authGetToken
+  }, dispatch);
+  // return {
+  //   authGetToken: (authorizationToken) => {
+  //     dispatch(authGetToken(authorizationToken))
+  //   }
+  // } 
+}
+
+export default connect(null, mapDispatchToProps)(Login);

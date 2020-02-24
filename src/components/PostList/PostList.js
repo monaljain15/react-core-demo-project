@@ -4,6 +4,8 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
+  TouchableOpacity,
+  Image,
   Alert,
   SafeAreaView
 } from 'react-native';
@@ -16,6 +18,7 @@ export default class PostList extends Component {
     state = {
         postsLoaded: false,
         postsData: [],
+        isRefreshing: false,
     };
 
     constructor(props) {
@@ -23,16 +26,16 @@ export default class PostList extends Component {
     }
 
     componentDidMount() {
-        this.getPosts();
+        this.getPosts(this.props.navigation.state['params']['authorization']);
     }
 
-    getPosts = () => {
+    getPosts = (authorizationToken) => {
 
         fetch('http://35.160.197.175:3006/api/v1/recipe/cooking-list',
         {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${this.props.authorization}`,
+                'Authorization': `Bearer ${authorizationToken}`,
             },
         }).then((response) => {
             if (response.status == 200) {
@@ -44,24 +47,17 @@ export default class PostList extends Component {
             this.setState({
                 postsData: responseJSON,
                 postsLoaded: true,
+                isRefreshing: false,
             });
         })
     };
 
     postSelected = (post) => {
-        Alert.alert(
-            post.name,
-            `Recipe preparation complexity: ${post.complexity}`,
-            [
-              {
-                text: 'Cancel',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel',
-              },
-              {text: 'OK', onPress: () => console.log('OK Pressed')},
-            ],
-            {cancelable: false},
-        );
+        this.props.navigation.push('Detail',{recipeId: post.recipeId, authorizationToken: this.props.navigation.state['params']['authorization']});
+    }
+
+    newRecipe = () => {
+        this.props.navigation.push('Add',{authorizationToken: this.props.navigation.state['params']['authorization']});
     }
 
     render() {
@@ -72,8 +68,13 @@ export default class PostList extends Component {
                 <SafeAreaView>
                     <FlatList
                         refreshControl={
-                            <RefreshControl></RefreshControl>
+                            <RefreshControl 
+                            refreshing={this.state.isRefreshing} 
+                            onRefresh={() => {
+                                this.setState({ isRefreshing: true })
+                                this.getPosts()}}></RefreshControl>
                         }
+                        refreshing={this.state.isRefreshing}
                         data={this.state.postsData}
                         renderItem={info => (
                             <ListItem
@@ -86,6 +87,9 @@ export default class PostList extends Component {
                         )}
                         // keyExtractor={(info) => info.recipeId.toString()}
                     />
+                    <TouchableOpacity style={styles.fabButton} onPress={this.newRecipe}>
+                        <Image style={styles.addIcon} source={require('../../../assets/add-icon.png')}></Image>
+                    </TouchableOpacity>
                 </SafeAreaView>
             );
         }
@@ -104,5 +108,22 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: '#fbb346',
+    },
+    fabButton: {
+        borderWidth:1,
+        borderColor:'rgba(0,0,0,0.2)',
+        alignItems:'center',
+        justifyContent:'center',
+        width:70,
+        position: 'absolute',                                          
+        bottom: 10,                                                    
+        right: 10,
+        height:70,
+        backgroundColor:'#fff',
+        borderRadius:100,
+    },
+    addIcon: {
+        height: 40,
+        width: 40,
     },
   });
