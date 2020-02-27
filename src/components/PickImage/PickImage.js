@@ -15,7 +15,6 @@ class PickImage extends Component {
   };
 
   imageOptions = () => {
-    console.log("alert clicked");
     Alert.alert(
       "Pick Image",
       "",
@@ -45,7 +44,6 @@ class PickImage extends Component {
       })
     } else {
       ImagePicker.launchImageLibraryAsync().then((res) => {
-        console.log("result", res);
         this.setState({
           pickedImage: {
             uri: res.uri,

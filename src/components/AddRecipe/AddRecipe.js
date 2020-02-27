@@ -5,6 +5,7 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
+  Alert,
 } from 'react-native';
 
 import DefaultInput from '../../components/UI/DefaultInput/DefaultInput';
@@ -12,6 +13,8 @@ import HeadingText from '../../components/UI/HeadingText/HeadingText';
 import MainText from '../../components/UI/MainText/MainText';
 import ButtonWithBackground from '../../components/UI/ButtonWithBackground/ButtonWithBackground';
 import PickImage from '../../components/PickImage/PickImage';
+
+import { connect } from "react-redux";
 
 class AddRecipe extends Component {
     
@@ -32,15 +35,10 @@ class AddRecipe extends Component {
           value: null,
         },
         isLoading: false,
-        authorizationToken: ''
     };
 
     constructor(props) {
         super(props);
-    }
-
-    componentDidMount() {
-        this.setState({authorizationToken: this.props.navigation.state['params']['authorizationToken']});
     }
 
     updateInputState = (key, value) => {
@@ -58,7 +56,6 @@ class AddRecipe extends Component {
     };
 
     recipeAddedHandler = () => {
-        console.log("recipeAddedHandler+++++++++++++++");
         const recipeData = {
             name: this.state.name.value,
             preparationTime: this.state.preparationTime.value,
@@ -69,25 +66,24 @@ class AddRecipe extends Component {
         {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${this.state.authorizationToken}`,
+                'Authorization': `Bearer ${this.props.authorizationToken}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(recipeData)
         }).then((response) => {
             if (response.status == 200) {
-                return response.json()
+                return response.json();
             } else {
                 console.log('Error');
             }
         }).then((responseJSON) => {
-            this.props.navigation.pop();
-            // this.uploadImage(responseJSON.id);
+            this.uploadImage(responseJSON.id);
         });
     };
 
     uploadImage = (recipeId) => {
         const photo = {
-            uri: this.state.image.value,
+            uri: this.state.image.value.uri,
             type: 'image/jpeg',
             name: 'photo.jpg',
         };
@@ -98,7 +94,7 @@ class AddRecipe extends Component {
         fetch('http://35.160.197.175:3006/api/v1/recipe/add-update-recipe-photo', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${this.state.authorizationToken}`,
+                'Authorization': `Bearer ${this.props.authorizationToken}`,
                 'Content-Type': 'application/json',
             },
             body: formData
@@ -108,7 +104,7 @@ class AddRecipe extends Component {
                     text: 'Okay',
                     style: 'cancel',
                     onPress: () => {
-                        this.props.navigation.pop()
+                        this.props.navigation.navigate('Home');
                     }
                 }
             ])
@@ -117,6 +113,10 @@ class AddRecipe extends Component {
             Alert.alert('Fail','Failed to Add Recipe!')
           });
     }
+
+    onClose = () => {
+        this.props.navigation.pop();
+    };
 
     render() {
         return (
@@ -178,6 +178,14 @@ class AddRecipe extends Component {
                                     }
                                 >Add the Recipe! </ButtonWithBackground>
                             </View>
+                            <View>
+                                <ButtonWithBackground
+                                    color="#521751"
+                                    onPress={this.onClose}
+                                >
+                                    Close
+                                </ButtonWithBackground>
+                            </View>
                         </View>
                     </ScrollView>
                 </View>
@@ -214,4 +222,8 @@ const styles = StyleSheet.create({
     }
   });
 
-export default AddRecipe;
+const mapStateToProps = (state) => {
+    return { authorizationToken: state.auth.authorizationToken }
+}
+  
+export default connect(mapStateToProps)(AddRecipe);

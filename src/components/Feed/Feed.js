@@ -5,7 +5,6 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
-  Image,
   Alert,
   SafeAreaView
 } from 'react-native';
@@ -15,7 +14,7 @@ import { connect } from "react-redux";
 import ListItem from '../ListItem/ListItem';
 import Loading from '../../components/UI/Loading/Loading';
 
-class PostList extends Component {
+class Feed extends Component {
 
     state = {
         postsLoaded: false,
@@ -90,9 +89,6 @@ class PostList extends Component {
                         )}
                         // keyExtractor={(info) => info.recipeId.toString()}
                     />
-                    <TouchableOpacity style={styles.fabButton} onPress={this.newRecipe}>
-                        <Image style={styles.addIcon} source={require('../../../assets/add-icon.png')}></Image>
-                    </TouchableOpacity>
                 </SafeAreaView>
             );
         }
@@ -135,4 +131,4 @@ const mapStateToProps = (state) => {
     return { authorizationToken: state.auth.authorizationToken }
 }
 
-export default connect(mapStateToProps)(PostList);
+export default connect(mapStateToProps)(Feed);

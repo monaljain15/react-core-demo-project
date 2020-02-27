@@ -16,7 +16,7 @@ import Loading from '../../components/UI/Loading/Loading';
 
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { authGetToken } from "./../../store/actions/index";
+import { authGetToken, getUser } from "./../../store/actions/index";
 
 
 class Login extends Component {
@@ -27,7 +27,12 @@ class Login extends Component {
       password: {
         value: 'jay@123',
       },
-      authorization: '',
+      user: {
+        firstName: '',
+        lastName: '',
+        email: '',
+      },
+      authorizationToken: '',
       isLoading: false,
   };
 
@@ -64,16 +69,22 @@ class Login extends Component {
     }).then((responseJSON) => {
         this.setState({isLoading: false});
         this.setState({
-          authorization: responseJSON.token,
+          authorizationToken: responseJSON.token,
+          user: {
+            firstName: responseJSON.firstName,
+            lastName: responseJSON.lastName,
+            email: responseJSON.email
+          }
         });
-        this.props.authGetToken(responseJson.token);
+        this.props.authGetToken(this.state.authorizationToken);
+        this.props.getUser(this.state.user);
         Alert.alert(
           'Login',
           'Login Successful',
           [
             {text: 'OK',
             onPress: () => {
-              this.props.navigation.navigate('Home',{authorization: this.state.authorization});
+              this.props.navigation.navigate('Home');
             }},
           ],
           {cancelable: false},
@@ -173,19 +184,9 @@ const styles = StyleSheet.create({
 });
 
 const mapDispatchToProps = (dispatch) => {
-  console.log('in dispatch');
-  
-  // return bindActionCreators({
-  //   authGetToken: (authorizationToken) => authGetToken(authorizationToken)
-  // }, dispatch)
   return bindActionCreators({
-    authGetToken
+    authGetToken, getUser
   }, dispatch);
-  // return {
-  //   authGetToken: (authorizationToken) => {
-  //     dispatch(authGetToken(authorizationToken))
-  //   }
-  // } 
 }
 
 export default connect(null, mapDispatchToProps)(Login);

@@ -1,13 +1,10 @@
 import React, {Component} from 'react';
 import {
-  Dimensions,
   View,
   Text,
   Image,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
-  Platform,
 } from 'react-native';
 
 import backgroundImage from '../../../assets/img59.jpeg';
@@ -29,8 +26,7 @@ class CookingDetail extends Component {
   }
 
   componentDidMount() {
-    console.log("this.props.authorizationToken", this.props.authorizationToken);
-    this.getRecipeDetail(this.props.navigation.state['params']['recipeId'], this.props.navigation.state['params']['authorizationToken']);
+    this.getRecipeDetail(this.props.navigation.state['params']['recipeId'], this.props.authorizationToken);
   }
 
   getRecipeDetail = (recipeId, authorizationToken) => {
@@ -48,12 +44,10 @@ class CookingDetail extends Component {
             
         }
     }).then((responseJSON) => {
-        console.log(responseJSON);
         this.setState({
             recipeDetail: responseJSON,
             recipeLoaded: true,
         });
-        console.log(this.state.recipeDetail.name, this.state.recipeDetail.ingredients.length);
     })
   };
 
@@ -69,7 +63,6 @@ class CookingDetail extends Component {
     if (this.state.recipeLoaded) {
         if (this.state.recipeDetail.ingredients.length > 0) {
           let ingredientsArray = this.state.recipeDetail.ingredients;
-            console.log("have ingredients");
             ingredientView = (
               <View>
                 <Text style={styles.recipeInfo}>
@@ -87,7 +80,6 @@ class CookingDetail extends Component {
     if (this.state.recipeLoaded) {
       if (this.state.recipeDetail.instructions.length > 0) {
         let instructionsArray = this.state.recipeDetail.instructions;
-          console.log("have instructions");
           instructionView = (
             <View>
               <Text style={styles.recipeInfo}>
@@ -234,7 +226,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => {
-  return { authorizationToken: state.authorizationToken }
+  return { authorizationToken: state.auth.authorizationToken }
 }
 
 export default connect(mapStateToProps)(CookingDetail);
