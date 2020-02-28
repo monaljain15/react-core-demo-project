@@ -26,9 +26,12 @@ class Setting extends Component {
 
     constructor(props) {
         super(props);
-        this.setState({pickedImage: this.props.pickedImage === '' ? profileImage : this.props.pickedImage});
         Permission.askAsync(Permission.CAMERA);
         Permission.askAsync(Permission.CAMERA_ROLL);
+    }
+
+    componentDidMount() {
+      this.setState({pickedImage: this.props.pickedImage === '' ? profileImage : this.props.pickedImage});
     }
 
     imageOptions = () => {
@@ -98,10 +101,16 @@ class Setting extends Component {
                     <View style={styles.settingSubContainer}>
                       <Text style={styles.settingMenu}>Location</Text>
                     </View>
+                    <View style={styles.iconSubContainer}>
+                      <Image style={styles.arrowIcon} source={require('../../../assets/right-arrow.png')}></Image>
+                    </View>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={this.feedsList}>
                     <View style={styles.settingSubContainer}>
                       <Text style={styles.settingMenu}>Feeds</Text>
+                    </View>
+                    <View style={styles.iconSubContainer}>
+                      <Image style={styles.arrowIcon} source={require('../../../assets/right-arrow.png')}></Image>
                     </View>
                   </TouchableOpacity>
                 </View>
@@ -149,6 +158,7 @@ const styles = StyleSheet.create({
     settingConatiner: {
       flex: 0.4,
       paddingTop: 20,
+      flexDirection: "column"
     },
     settingSubContainer: {
       backgroundColor: "#521751",
@@ -156,13 +166,27 @@ const styles = StyleSheet.create({
       width: Dimensions.get('window').width - 10,
       // height: "30%",
     },
+    iconSubContainer: {
+      alignItems:'center',
+      justifyContent:'center',
+      width:40,
+      position: 'absolute',                                          
+      bottom: 20,                                                    
+      right: 0,
+      height:30,
+    },
     settingMenu: {
       color: "#3feaea",
       fontWeight: "bold",
       fontSize: 20,
       lineHeight: 50,
       paddingLeft: 10
-    }
+    },
+    arrowIcon: {
+      height: 27,
+      width: 27,
+      tintColor: "#3feaea",
+    },
 });
 
 const mapStateToProps = (state) => {

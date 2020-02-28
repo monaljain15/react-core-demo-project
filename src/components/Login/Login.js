@@ -88,7 +88,7 @@ class Login extends Component {
             }},
           ],
           {cancelable: false},
-      );
+        );
     }).catch((err) => {
       this.setState({isLoading: false});
     });

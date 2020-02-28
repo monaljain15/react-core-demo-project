@@ -13,6 +13,7 @@ import HeadingText from '../../components/UI/HeadingText/HeadingText';
 import MainText from '../../components/UI/MainText/MainText';
 import ButtonWithBackground from '../../components/UI/ButtonWithBackground/ButtonWithBackground';
 import PickImage from '../../components/PickImage/PickImage';
+import Loading from '../../components/UI/Loading/Loading';
 
 import { connect } from "react-redux";
 
@@ -56,6 +57,7 @@ class AddRecipe extends Component {
     };
 
     recipeAddedHandler = () => {
+        this.setState({isLoading:true})
         const recipeData = {
             name: this.state.name.value,
             preparationTime: this.state.preparationTime.value,
@@ -99,6 +101,7 @@ class AddRecipe extends Component {
             },
             body: formData
         }).then((responseJson) => {
+            this.setState({isLoading:false});
             Alert.alert('Success','Recipe Added!',[
                 {
                     text: 'Okay',
@@ -130,6 +133,7 @@ class AddRecipe extends Component {
                             <PickImage
                                 onImagePicked={this.imagePickedHandler}
                             />
+                            <Loading isLoading={this.state.isLoading} />
                             <View>
                                 <DefaultInput
                                 placeholder="Recipe Name"

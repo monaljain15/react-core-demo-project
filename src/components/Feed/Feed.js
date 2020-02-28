@@ -3,10 +3,12 @@ import {
   View,
   StyleSheet,
   FlatList,
-  RefreshControl,
+  Text,
   TouchableOpacity,
+  Image,
   Alert,
-  SafeAreaView
+  SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 
 import { connect } from "react-redux";
@@ -17,9 +19,11 @@ import Loading from '../../components/UI/Loading/Loading';
 class Feed extends Component {
 
     state = {
-        postsLoaded: false,
-        postsData: [],
+        feedsLoaded: false,
+        feedsData: [],
+        finalFeeds: [],
         isRefreshing: false,
+        isLoading: false,
     };
 
     constructor(props) {
@@ -27,13 +31,14 @@ class Feed extends Component {
     }
 
     componentDidMount() {
-        this.getPosts(this.props.authorizationToken);
+        this.getFeeds(this.props.authorizationToken);
         // this.getPosts(this.props.navigation.state['params']['authorization']);
     }
 
-    getPosts = (authorizationToken) => {
+    getFeeds = (authorizationToken) => {
+        this.setState({isLoading: true});
 
-        fetch('http://35.160.197.175:3006/api/v1/recipe/cooking-list',
+        fetch('http://35.160.197.175:3006/api/v1/recipe/feeds',
         {
             method: 'GET',
             headers: {
@@ -47,25 +52,89 @@ class Feed extends Component {
             }
         }).then((responseJSON) => {
             this.setState({
-                postsData: responseJSON,
-                postsLoaded: true,
+                feedsData: responseJSON,
+                feedsLoaded: true,
                 isRefreshing: false,
             });
+            const finalFeeds = this.state.feedsData.filter(obj => obj.inCookingList === 0);
+            this.setState({finalFeeds: finalFeeds, isLoading: false});
         })
     };
 
-    postSelected = (post) => {
-        this.props.navigation.push('Detail',{recipeId: post.recipeId});
+    feedSelected = (feed) => {
+        this.props.navigation.push('Detail',{recipeId: feed.recipeId});
     }
 
-    newRecipe = () => {
-        this.props.navigation.push('Add');
+    addFeed = (recipeId) => {
+        this.setState({isLoading: true});
+        fetch('http://35.160.197.175:3006/api/v1/recipe/add-to-cooking-list',
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.props.authorizationToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({recipeId: recipeId})
+        }).then((response) => {
+            if (response.status == 200) {
+                return response.json()
+            } else {
+            }
+        }).then((responseJSON) => {
+            this.setState({isLoading: false});
+            Alert.alert(
+                'Success',
+                `${responseJSON.msg}`,
+                [
+                  {text: 'OK',
+                  onPress: () => {
+                    this.getFeeds(this.props.authorizationToken);
+                  }},
+                ],
+                {cancelable: false},
+            );
+        })
+
     }
+
+    deleteFeed = (recipeId) => {
+        this.setState({isLoading: true});
+        fetch(`http://35.160.197.175:3006/api/v1/recipe/${recipeId}`,
+        {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${this.props.authorizationToken}`,
+                'Content-Type': 'application/json',
+            },
+        }).then((response) => {
+            if (response.status == 200) {
+                return response.json()
+            } else {
+            }
+        }).then((responseJSON) => {
+            this.setState({isLoading: false});
+            Alert.alert(
+                'Delete',
+                `${responseJSON.msg}!`,
+                [
+                  {text: 'OK',
+                  onPress: () => {
+                    this.getFeeds(this.props.authorizationToken);
+                  }},
+                ],
+                {cancelable: false},
+            );
+        })
+    }
+
+    onClose = () => {
+        this.props.navigation.pop();
+    };
 
     render() {
-        let content = <Loading isLoading={this.state.postsLoaded} />;
+        let content = <Loading isLoading={this.state.isLoading} />;
 
-        if (this.state.postsLoaded) {
+        if (this.state.feedsLoaded) {
             content = (
                 <SafeAreaView>
                     <FlatList
@@ -74,21 +143,34 @@ class Feed extends Component {
                             refreshing={this.state.isRefreshing} 
                             onRefresh={() => {
                                 this.setState({ isRefreshing: true })
-                                this.getPosts()}}></RefreshControl>
+                                this.getFeeds(this.props.authorizationToken)}}></RefreshControl>
                         }
                         refreshing={this.state.isRefreshing}
-                        data={this.state.postsData}
+                        data={this.state.finalFeeds}
                         renderItem={info => (
-                            <ListItem
-                            postName={info.item.name}
-                            postPreparationTime={info.item.preparationTime}
-                            postServes={info.item.serves}
-                            postImage={info.item.photo}
-                            onItemPressed={() => this.postSelected(info.item)}
-                            />
+                            <View>
+                                <ListItem
+                                postName={info.item.name}
+                                postPreparationTime={info.item.preparationTime}
+                                postServes={info.item.serves}
+                                postImage={info.item.photo}
+                                onItemPressed={() => this.feedSelected(info.item)}
+                                />
+                                <Loading isLoading={this.state.isLoading} />
+                                <TouchableOpacity style={styles.addButton} onPress={() => this.addFeed(info.item.recipeId)}>
+                                    <Text style={styles.buttonText}>Add</Text>
+                                </TouchableOpacity>
+                            
+                                <TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteFeed(info.item.recipeId)}>
+                                    <Text style={styles.buttonText}>Delete</Text>
+                                </TouchableOpacity>
+                            </View>
                         )}
                         // keyExtractor={(info) => info.recipeId.toString()}
                     />
+                    <TouchableOpacity style={styles.fabButton} onPress={this.onClose}>
+                        <Image style={styles.closeIcon} source={require('../../../assets/close.png')}></Image>
+                    </TouchableOpacity>
                 </SafeAreaView>
             );
         }
@@ -121,9 +203,39 @@ const styles = StyleSheet.create({
         backgroundColor:'#fff',
         borderRadius:100,
     },
-    addIcon: {
+    closeIcon: {
         height: 40,
         width: 40,
+    },
+    addButton: {
+        borderWidth:1,
+        borderColor:'rgba(0,0,0,0.2)',
+        alignItems:'center',
+        justifyContent:'center',
+        width:70,
+        position: 'absolute',                                          
+        bottom: 60,                                                    
+        right: 10,
+        height:30,
+        backgroundColor:'#fff',
+        borderRadius: 20,
+    },
+    deleteButton: {
+        borderWidth:1,
+        borderColor:'rgba(0,0,0,0.2)',
+        alignItems:'center',
+        justifyContent:'center',
+        width:70,
+        position: 'absolute',                                          
+        bottom: 20,                                                    
+        right: 10,
+        height:30,
+        backgroundColor:'#fff',
+        borderRadius: 20,
+    },
+    buttonText: {
+        color: "#521751",
+        fontWeight: "bold",
     },
   });
 
